@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:login/models/todolistmodel.dart';
-import 'package:login/services/tdl_service.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:login/views/tdl_cubit.dart';
 
 class Home extends StatefulWidget {
   
@@ -15,48 +15,71 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-   List<TdlModel> TDL = [];
-   bool isLoading = true;
+  //  List<TdlModel> TDL = [];
+  //  bool isLoading = true;
 
-   getTDL()async{
-    TDL = await TodolistService().getTDLData();
-    isLoading = false;
-    setState(() {});
-   }
-
-
-
+  //  getTDL()async{
+  //   TDL = await TodolistService().getTDLData();
+  //   isLoading = false;
+  //   setState(() {});
+  //  }
 
 
   @override
-  void initState(){
-    super.initState();
-    getTDL();
-  }
+  // void initState(){
+  //   super.initState();
+  //   getTDL();
+  // }
   Widget build(BuildContext context) {
-    return 
-    isLoading ? 
-    const Center(
+    return BlocProvider(
+    
+      create:(context) => TdlCubit(),
+      child: BlocConsumer<TdlCubit ,TdlState>(
+      builder: (context,State) {
+       if (State is TdlLoading){
+        return Center(
       child: CircularProgressIndicator(),
-    )
-    : 
-    ListView.builder(
-      itemCount: TDL.length,
-      
-      itemBuilder: (BuildContext context, index){
+          );
+       } 
+       else if (State is TdlSuccess)
+       {
+        return ListView.builder(
+        itemCount: context.watch<TdlCubit>().TDL.length,
+        itemBuilder: (BuildContext context, index){
         return ListTile(
-           title: Text(TDL[index].title),
-           subtitle: Text(TDL[index].completed.toString()) ,
+           title: Text(context.watch<TdlCubit>().TDL[index].title),
+           subtitle: Text(context.watch<TdlCubit>().TDL[index].completed.toString()) ,
            trailing: Icon(Icons.person),
 
         );
+       });
+       }
+       else {
+        return Center(
+          child: Text("Error in this screen"),
+        );
+       }
 
-      }
+
+      },
+      
+      listener: (context,State){
+        if(State is TdlError){
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text("Hello we have error")
+          
+          
+          ));
+        }
+      },
+      
+      
+      
+      
+      
+        ),
+      );
     
-    
-    
-    
-    );
     
     // final _formKey = GlobalKey<FormState>();
     // return Scaffold(
@@ -96,3 +119,5 @@ class _HomeState extends State<Home> {
   
   
 }
+
+   
