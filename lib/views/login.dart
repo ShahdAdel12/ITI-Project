@@ -1,4 +1,5 @@
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -19,6 +20,7 @@ class _LoginPageState extends State<LoginPage>{
   Widget build(BuildContext context) {
    final _formKey = GlobalKey<FormState>();
    final TextEditingController emailController = TextEditingController();
+   final TextEditingController passwoordController = TextEditingController();
     return Scaffold(  
       appBar:AppBar(backgroundColor:  const Color.fromARGB(255, 249, 249, 247),
         title: const Text("Member Login",style:TextStyle(fontSize:25, color:Colors.black)),
@@ -83,6 +85,7 @@ class _LoginPageState extends State<LoginPage>{
         Padding(
         padding: const EdgeInsets.all(10),
         child: TextFormField(
+          controller: passwoordController,
           decoration: const InputDecoration(
           prefixIcon: Icon(Icons.lock),
           labelText:"Password",
@@ -115,7 +118,7 @@ class _LoginPageState extends State<LoginPage>{
        ElevatedButton(
           onPressed: () { 
             if(_formKey.currentState!.validate()){
-              saveEmail(emailController.text);
+             signinUsingFirebase(emailController.text, passwoordController.text);
            Navigator.push(
            context,
            MaterialPageRoute
@@ -159,6 +162,12 @@ class _LoginPageState extends State<LoginPage>{
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     prefs.setString("email", email);
   }
-
+   signinUsingFirebase(String email, String password) async{
+    UserCredential userCredential = 
+      await FirebaseAuth.instance.signInWithEmailAndPassword(email: email, password: password);
+    final user = userCredential.user;
+    print(user?.uid);
+    saveEmail(user!.email!);
+  }
   
 }
