@@ -1,9 +1,10 @@
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:login/views/products.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'NavBar.dart';
+// import 'NavBar.dart';
 
 class  LoginPage extends StatefulWidget {
   const LoginPage ({
@@ -116,17 +117,29 @@ class _LoginPageState extends State<LoginPage>{
           height: 9,
         ),
        ElevatedButton(
-          onPressed: () { 
+          onPressed: () async { 
             if(_formKey.currentState!.validate()){
-             signinUsingFirebase(emailController.text, passwoordController.text);
-           Navigator.push(
+            bool loginResult= await signinUsingFirebase(emailController.text, passwoordController.text);
+            if(loginResult == true){
+          //  Navigator.push(
+          //  context,
+          //  MaterialPageRoute
+          //  (builder: (context) =>  NavBarPage(
+          //    email: emailController.text,
+          //  )),
+          Navigator.push(
            context,
            MaterialPageRoute
-           (builder: (context) =>  NavBarPage(
-             email: emailController.text,
-           )),
-          );
-            };
+           (builder: (context) =>  DevicesList(
+            )),
+          );}
+          else{
+           ScaffoldMessenger.of(context).showSnackBar(SnackBar(content:Text("Login Faild")));
+          }
+            }
+            else{
+              emailController.clear();
+            }
 
           },
           
@@ -162,12 +175,22 @@ class _LoginPageState extends State<LoginPage>{
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     prefs.setString("email", email);
   }
-   signinUsingFirebase(String email, String password) async{
+   Future<bool> signinUsingFirebase(String email, String password) async{
+    bool result = false;
+    try {
     UserCredential userCredential = 
       await FirebaseAuth.instance.signInWithEmailAndPassword(email: email, password: password);
     final user = userCredential.user;
+    if (user != null){
     print(user?.uid);
-    saveEmail(user!.email!);
+    saveEmail(user.email!);
+    result = true;
+    }
+    return result;
+    }
+    catch (e){
+     return result;
+    }
   }
   
 }
